@@ -1,16 +1,18 @@
-import requests
+from flask import Flask, request, Response
 from bs4 import BeautifulSoup
+import requests
 
-# 네이버 뉴스 페이지에서 HTMLㅇㅡㄹ 가져옴
-response = requests.get("https://news.naver.com/")
+app = Flask(__name__)
 
-# BeatifulSoup 객체 생성
-soup = BeautifulSoup(response.text,'html.parser')
+@app.route('/get_headlines', methods=['GET'])
+def get_headlines():
+    url = 'https://news.naver.com'
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    headlines = soup.select(".hdline_article_tit")
+    headlines_text = [h.get_text(strip=True) for h in headlines]
+    return Response("\n".join(headlines_text), mimetype='text/plain')
 
-# 뉴스 헤드라인 선택
-headlines = soup.select("div.cjs_channel_card div.cjs_journal_wrap._item_contents div.cjs_news_tw div.cjs_t")
-
-for headline in headlines:
-    print(headline.text.strip())
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8010)
 
